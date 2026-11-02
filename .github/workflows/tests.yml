@@ -1,0 +1,17 @@
+name: Python reference tests
+on:
+  push:
+  pull_request:
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m unittest discover -s tests -v
+      - run: cc -std=c99 -Wall -Wextra -Werror tests/rosary_c.c -o /tmp/missa-rosary && /tmp/missa-rosary
+      - run: cc -std=c99 -Wall -Wextra -Werror tests/music_c.c -o /tmp/missa-music && /tmp/missa-music
+      - run: python tools/gabc_to_events.py data/chants/salve-regina-simple-18969.gabc app/salve_regina_score.h --check
+      - run: python tools/parts_to_events.py data/hymns/holy-god-grosser-gott-1869.json app/holy_god_score.h --check

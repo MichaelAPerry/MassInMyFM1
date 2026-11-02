@@ -1,0 +1,10 @@
+name = "MISSA"
+id_prefix = "FM-1_63"
+usb_manufacturer = "MISSA"
+usb_product = "MISSA FM-1"
+o2 = []
+ble = false
+words = "words.tsv"
+tagline = "Roman Catholic musical prayerbook for FM-1"
+repo = "https://github.com/MichaelAPerry/MassInMyFM1"
+licence = "MIT"

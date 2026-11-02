@@ -1,0 +1,27 @@
+name: FM-1 host build
+on:
+  push:
+  pull_request:
+jobs:
+  host:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Retrieve firmware platform
+        run: git clone --depth 1 --recurse-submodules https://github.com/charlesvestal/fm1-base.git /tmp/fm1-base
+      - name: Install upstream host build dependencies
+        run: python3 -m pip install Pillow
+      - name: Build MISSA against fm1-base host platform
+        run: |
+          cp -a app /tmp/fm1-base/missa
+          cd /tmp/fm1-base
+          python3 tools/build.py missa --host
+      - name: Run headless FM-1 interaction smoke test
+        run: |
+          cd /tmp/fm1-base
+          missa/build/host/missa_host "$GITHUB_WORKSPACE/tests/host-smoke.txt" missa/build/host
+      - name: Upload host executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: missa-host
+          path: /tmp/fm1-base/missa/build/host/
