@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <string.h>
 #include "fastmath.h"
+#include "rosary_steps.h"
 #define MISSA_MAGIC 0x4153534Du
 typedef struct {
     uint32_t magic;
@@ -76,13 +77,13 @@ static void input(void) {
     if (settings.mode==1 && d) { int step=d>0?1:-1;while(d){date_step(step);d-=step;} }
     else if (settings.mode==3 && d) {
         int n=(int)settings.rosary_pos+d;
-        settings.rosary_pos=(uint8_t)clamp(n,0,78);
+        settings.rosary_pos=(uint8_t)clamp(n,0,(int)missa_rosary_length(1)-1);
         redraw=1;
     } else if(d) {settings.mode=(uint8_t)clamp((int)settings.mode+d,0,3);redraw=1;}
     if (pressed & (1u<<B_HOME)) {settings.mode=0;redraw=1;}
     if (pressed & (1u<<B_SEL)) {settings.mode=(settings.mode+1u)%4u;redraw=1;}
     if (pressed & (1u<<B_EDIT)) {mystery_set=(mystery_set+1u)%4u;redraw=1;}
-    if (pressed & (1u<<B_PLAY) && settings.mode==3 && settings.rosary_pos<78) {settings.rosary_pos++;redraw=1;}
+    if (pressed & (1u<<B_PLAY) && settings.mode==3 && settings.rosary_pos+1u<missa_rosary_length(1)) {settings.rosary_pos++;redraw=1;}
     if (pressed & (1u<<B_OCTDN)) date_step(-1);
     if (pressed & (1u<<B_OCTUP)) date_step(1);
     if (pressed & (1u<<B_SAVE)) save();
@@ -119,7 +120,8 @@ void app_frame(void) {
         number[5]=(char)('0'+settings.rosary_pos/10);
         number[6]=(char)('0'+settings.rosary_pos%10);number[7]=0;
         cv_text(12,134,&FONT_B,number,C_WHITE);
-        cv_text(12,169,&FONT_XS,"PLAY NEXT / SEQ PREV",C_WHITE);
+        cv_text(12,153,&FONT_XS,missa_rosary_prayer(settings.rosary_pos,1),C_WHITE);
+        cv_text(12,181,&FONT_XS,"PLAY NEXT / SEQ PREV",C_WHITE);
     } else if(settings.mode==2) {
         cv_text(12,110,&FONT_XS,"MUSIC CATALOG PENDING",C_WHITE);
         cv_text(12,132,&FONT_XS,"KEYS: LIVE SYNTH",C_WHITE);
