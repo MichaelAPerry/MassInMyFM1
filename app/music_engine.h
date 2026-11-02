@@ -13,7 +13,7 @@ typedef struct {
     const missa_event *events;
     uint16_t count, next, tempo, score_end;
     uint32_t sample_clock, sample_at_event;
-    uint8_t playing, paused, timbre;
+    uint8_t playing, paused, timbre, part_mode;
 } missa_player;
 static void missa_player_clear(missa_player *p) {
     memset(p->voices,0,sizeof p->voices);
@@ -44,7 +44,8 @@ static void missa_player_step(missa_player *p) {
     if(!p->playing || p->paused)return;
     while(p->next<p->count && missa_tick_sample(p->events[p->next].tick,p->tempo)<=p->sample_clock) {
         const missa_event *e=&p->events[p->next++];
-        missa_player_note(p,e->note,e->velocity,e->part,e->on);
+        if(p->part_mode==0u || e->part==0u)
+            missa_player_note(p,e->note,e->velocity,e->part,e->on);
     }
     if(p->next==p->count && p->sample_clock>=missa_tick_sample(p->score_end,p->tempo)) {
         missa_player_clear(p);return;
