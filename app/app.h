@@ -5,6 +5,7 @@
 #define APP_NAME "MISSA"
 #define APP_SPLASH_RGB RGB(105, 22, 48)
 #define APP_BLOCK 256u
+#define APP_TOUCH
 enum { OBJ_SETTINGS, OBJ_PANEL, OBJ_NOBJ };
 #define APP_STORE_MAP {0xFC000u, 0xDC000u}
 void app_init(void);
