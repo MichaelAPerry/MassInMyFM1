@@ -16,6 +16,10 @@ jobs:
           cp -a app /tmp/fm1-base/missa
           cd /tmp/fm1-base
           python3 tools/build.py missa --host
+      - name: Run headless FM-1 interaction smoke test
+        run: |
+          cd /tmp/fm1-base
+          missa/build/host/missa_host "$GITHUB_WORKSPACE/tests/host-smoke.txt" missa/build/host
       - name: Upload host executable
         uses: actions/upload-artifact@v4
         with:
