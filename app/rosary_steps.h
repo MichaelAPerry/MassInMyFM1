@@ -12,16 +12,16 @@ static uint8_t missa_rosary_decade(uint8_t position,uint8_t fatima) {
     return step>=5u*width?5u:(uint8_t)(1u+step/width);
 }
 static uint8_t missa_rosary_bead(uint8_t position,uint8_t fatima) {
-    if(position<6u)return position==2u?1u:(position>=3u && position<=5u?position-2u:0u);
-    uint8_t width=fatima?14u:13u, step=(uint8_t)(position-6u);
+    if(position<7u)return position==2u?1u:(position>=3u && position<=5u?position-2u:0u);
+    uint8_t width=fatima?14u:13u, step=(uint8_t)(position-7u);
     if(step>=5u*width)return 0u;
     uint8_t local=step%width;
     return local>=2u && local<12u ? (uint8_t)(local-1u) : 0u;
 }
 static const char *missa_rosary_prayer(uint8_t position,uint8_t fatima) {
     static const char *const intro[7]={"SIGN OF CROSS","APOSTLES CREED","OUR FATHER","HAIL MARY 1/3","HAIL MARY 2/3","HAIL MARY 3/3","GLORY BE"};
-    if(position<6u)return intro[position];
-    uint8_t width=fatima?14u:13u, step=(uint8_t)(position-6u);
+    if(position<7u)return intro[position];
+    uint8_t width=fatima?14u:13u, step=(uint8_t)(position-7u);
     if(step>=5u*width) {
         static const char *const ending[3]={"HAIL HOLY QUEEN","CONCLUDING PRAYER","SIGN OF CROSS"};
         uint8_t idx=(uint8_t)(step-5u*width);
