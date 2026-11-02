@@ -15,7 +15,7 @@ wait 150
 wav missa-key.wav
 wait 300
 wavstop
-# Audio output is not yet asserted; current simulated key path yielded silence.
+expect peak_db_min -40
 key 7 up
 wait 100
 tap SEL
