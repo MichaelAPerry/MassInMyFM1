@@ -18,6 +18,17 @@ wavstop
 expect peak_db_min -40
 tap REC
 wait 75
+turn K1 1
+wait 40
+shot missa-satb.png
+tap PLAY
+wait 100
+wav holy-god-satb.wav
+wait 650
+wavstop
+expect peak_db_min -40
+tap REC
+wait 50
 master 4096
 key 7 down
 wait 150
