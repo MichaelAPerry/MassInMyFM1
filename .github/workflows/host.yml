@@ -9,6 +9,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Retrieve firmware platform
         run: git clone --depth 1 --recurse-submodules https://github.com/charlesvestal/fm1-base.git /tmp/fm1-base
+      - name: Install upstream host build dependencies
+        run: python3 -m pip install Pillow
       - name: Build MISSA against fm1-base host platform
         run: |
           cp -a app /tmp/fm1-base/missa
