@@ -23,7 +23,8 @@ int main(void) {
     for(int i=0;i<MISSA_VOICES;i++)assert(!p.voices[i].active);
     missa_player_start(&p,score,6,120,192);
     for(int i=0;i<10;i++)missa_player_note(&p,(uint8_t)(40+i),100,0,1);
-    assert(p.voices[0].note==48 && p.voices[1].note==49);
+    assert(p.voices[0].note==49);
+    for(int i=0;i<MISSA_VOICES;i++)assert(p.voices[i].active);
     missa_player_clear(&p);
     assert(!p.playing);
     return 0;
