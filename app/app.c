@@ -69,7 +69,9 @@ void app_render(int32_t *lr,uint32_t n,uint32_t master_q12) {
 }
 void app_say(const char *a,const char *b) {(void)a;(void)b;redraw=1;}
 static void input(void) {
-    uint32_t buttons=plat_buttons(), keys=plat_keys();
+    uint32_t buttons=plat_buttons(), keys;
+    touch_poll();
+    keys=touch_keys();
     uint32_t pressed=buttons & ~previous_buttons;
     int32_t d=plat_enc(EN_SELECT);
     (void)plat_enc(EN_ALGO);
@@ -98,7 +100,7 @@ static void input(void) {
     plat_leds(buttons,keys);
 }
 void app_input_only(void) {input();}
-void app_ui_init(void) {lcd_fill(0,0,240,240,C_BLACK);redraw=1;}
+void app_ui_init(void) {touch_on(1);lcd_fill(0,0,240,240,C_BLACK);redraw=1;}
 void app_frame(void) {
     char date_text[32],number[12];
     input();
