@@ -1,0 +1,34 @@
+# MISSA device host smoke test: real fm1-base input and audio path
+wait 600
+shot missa-home.png
+tap SEL
+wait 80
+shot missa-calendar.png
+tap OCT+
+wait 50
+tap SEL
+wait 80
+shot missa-cantus.png
+key 7 down
+wait 150
+wav missa-key.wav
+wait 300
+wavstop
+expect peak_db_min -40
+key 7 up
+wait 100
+tap SEL
+wait 60
+shot missa-rosary.png
+tap PLAY
+wait 50
+tap PLAY
+wait 50
+tap SEQ
+wait 50
+tap SAVE
+wait 80
+expect store_writes 1
+reboot
+wait 600
+shot missa-reboot.png
