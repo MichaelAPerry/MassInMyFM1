@@ -96,7 +96,13 @@ static void input(void) {
     keys=touch_keys();
     uint32_t pressed=buttons & ~previous_buttons;
     int32_t d=plat_enc(EN_SELECT);
-    (void)plat_enc(EN_ALGO);
+    int32_t tempo_delta=plat_enc(EN_ALGO);
+    if(tempo_delta && !player.playing) {
+        int tempo=(int)player.tempo+tempo_delta*5;
+        player.tempo=(uint16_t)clamp(tempo,40,200);
+        redraw=1;
+    }
+    if(plat_enc(EN_PRESET)) {player.part_mode^=1u;redraw=1;}
     (void)plat_enc(EN_K1);(void)plat_enc(EN_K2);(void)plat_enc(EN_K3);(void)plat_enc(EN_K4);
     if (settings.mode==1 && d) { int step=d>0?1:-1;while(d){date_step(step);d-=step;} }
     else if (settings.mode==3 && d) {
@@ -113,7 +119,7 @@ static void input(void) {
     if (pressed & (1u<<B_SAVE)) save();
     if (pressed & (1u<<B_FX)) {settings.tone=(settings.tone+1u)%3u;player.timbre=settings.tone;redraw=1;}
     if (pressed & (1u<<B_PLAY) && settings.mode==2) {
-        if(!player.playing)missa_player_start(&player,test_score,(uint16_t)(sizeof test_score/sizeof test_score[0]),100,480);
+        if(!player.playing)missa_player_start(&player,test_score,(uint16_t)(sizeof test_score/sizeof test_score[0]),player.tempo?player.tempo:100,480);
         else player.paused=!player.paused;
         redraw=1;
     }
@@ -155,7 +161,8 @@ void app_frame(void) {
     } else if(settings.mode==2) {
         cv_text(12,110,&FONT_XS,"DEMO SCORE - NOT CHANT",C_WHITE);
         cv_text(12,150,&FONT_XS,player.playing?(player.paused?"PAUSED":"PLAYING"):"STOPPED",C_WHITE);
-        cv_text(12,170,&FONT_XS,"PLAY START/PAUSE REC STOP",C_WHITE);
+        cv_text(12,170,&FONT_XS,player.part_mode?"MELODY ONLY":"ALL PARTS",C_WHITE);
+        cv_text(12,188,&FONT_XS,"PRESET PARTS / FX SOUND",C_WHITE);
         cv_text(12,132,&FONT_XS,"KEYS: LIVE SYNTH",C_WHITE);
     } else {
         cv_text(12,110,&FONT_XS,"CALENDAR: PROVISIONAL",C_WHITE);
