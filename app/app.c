@@ -6,6 +6,7 @@
 #include <string.h>
 #include "fastmath.h"
 #include "rosary_steps.h"
+#include "music_engine.h"
 #define MISSA_MAGIC 0x4153534Du
 typedef struct {
     uint32_t magic;
@@ -16,6 +17,13 @@ static missa_settings_t settings;
 static uint32_t previous_buttons;
 static uint8_t redraw;
 static float phase, level;
+static missa_player player;
+/* Engineering test sequence: C-major arpeggio and simultaneous triad, NOT sacred repertoire. */
+static const missa_event test_score[] = {
+    {0,60,100,1,0},{96,60,0,0,0},{96,64,100,1,0},{192,64,0,0,0},
+    {192,67,100,1,0},{288,67,0,0,0},{288,60,92,1,0},{288,64,92,1,1},
+    {288,67,92,1,2},{480,60,0,0,0},{480,64,0,0,1},{480,67,0,0,2}
+};
 static int32_t live_note = -1;
 static uint32_t held_keys;
 static const char *const mode_name[4] = {"MISSA / MASS", "CALENDARIUM", "CANTUS", "ROSARIUM"};
@@ -51,7 +59,7 @@ void app_init(void) {
         settings=(missa_settings_t){MISSA_MAGIC,2026,11,2,0,0,0};
     }
 }
-void app_panic(void) {live_note=-1; level=0.0f;}
+void app_panic(void) {live_note=-1; level=0.0f;missa_player_clear(&player);}
 void app_render(int32_t *lr,uint32_t n,uint32_t master_q12) {
     float inc=live_note>=0 ? 440.0f*fm_exp2f((float)(live_note-69)/12.0f)/44100.0f : 0.0f;
     float gain=(float)master_q12/4096.0f*2600000.0f;
@@ -63,7 +71,21 @@ void app_render(int32_t *lr,uint32_t n,uint32_t master_q12) {
         float s = settings.tone==0 ? fm_sinf(phase*6.2831853f) :
                   settings.tone==1 ? (phase<0.5f?1.0f:-1.0f)*0.45f :
                   4.0f*fm_fabsf(phase-0.5f)-1.0f;
-        int32_t sample=(int32_t)(s*level*gain);
+        missa_player_step(&player);
+        float poly=0.0f;
+        for(uint32_t v=0;v<MISSA_VOICES;v++) {
+            missa_voice *q=&player.voices[v];
+            if(!q->active)continue;
+            float hz=440.0f*fm_exp2f(((float)q->note-69.0f)/12.0f);
+            q->phase+=hz/44100.0f;
+            if(q->phase>=1.0f)q->phase-=1.0f;
+            float p0=q->phase;
+            float v0=player.timbre==0 ? fm_sinf(p0*6.2831853f)+0.35f*fm_sinf(p0*12.5663706f) :
+                     player.timbre==1 ? 0.6f*fm_sinf(p0*6.2831853f)+0.22f*fm_sinf(p0*18.8495559f) :
+                     fm_sinf(p0*6.2831853f)+0.45f*fm_sinf(p0*25.1327412f);
+            poly+=v0*((float)q->velocity/127.0f);
+        }
+        int32_t sample=(int32_t)((s*level+poly*0.12f)*gain);
         lr[2*i]=sample;lr[2*i+1]=sample;
     }
 }
@@ -89,7 +111,13 @@ static void input(void) {
     if (pressed & (1u<<B_OCTDN)) date_step(-1);
     if (pressed & (1u<<B_OCTUP)) date_step(1);
     if (pressed & (1u<<B_SAVE)) save();
-    if (pressed & (1u<<B_FX)) {settings.tone=(settings.tone+1u)%3u;redraw=1;}
+    if (pressed & (1u<<B_FX)) {settings.tone=(settings.tone+1u)%3u;player.timbre=settings.tone;redraw=1;}
+    if (pressed & (1u<<B_PLAY) && settings.mode==2) {
+        if(!player.playing)missa_player_start(&player,test_score,(uint16_t)(sizeof test_score/sizeof test_score[0]),100,480);
+        else player.paused=!player.paused;
+        redraw=1;
+    }
+    if (pressed & (1u<<B_REC) && settings.mode==2) {missa_player_clear(&player);redraw=1;}
     if (pressed & (1u<<B_SEQ) && settings.mode==3 && settings.rosary_pos) {settings.rosary_pos--;redraw=1;}
     if (keys!=held_keys) {
         if(keys) {for(int k=0;k<NKEYS;k++) if(keys & (1u<<k)) {live_note=53+k;break;}}
@@ -125,7 +153,9 @@ void app_frame(void) {
         cv_text(12,153,&FONT_XS,missa_rosary_prayer(settings.rosary_pos,1),C_WHITE);
         cv_text(12,181,&FONT_XS,"PLAY NEXT / SEQ PREV",C_WHITE);
     } else if(settings.mode==2) {
-        cv_text(12,110,&FONT_XS,"MUSIC CATALOG PENDING",C_WHITE);
+        cv_text(12,110,&FONT_XS,"DEMO SCORE - NOT CHANT",C_WHITE);
+        cv_text(12,150,&FONT_XS,player.playing?(player.paused?"PAUSED":"PLAYING"):"STOPPED",C_WHITE);
+        cv_text(12,170,&FONT_XS,"PLAY START/PAUSE REC STOP",C_WHITE);
         cv_text(12,132,&FONT_XS,"KEYS: LIVE SYNTH",C_WHITE);
     } else {
         cv_text(12,110,&FONT_XS,"CALENDAR: PROVISIONAL",C_WHITE);
