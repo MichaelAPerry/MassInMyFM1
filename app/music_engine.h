@@ -21,7 +21,7 @@ static void missa_player_clear(missa_player *p) {
 }
 static void missa_player_start(missa_player *p,const missa_event *ev,uint16_t count,uint16_t bpm,uint16_t end) {
     missa_player_clear(p);
-    p->events=ev;p->count=count;p->tempo=bpm?p->tempo=bpm:96;p->score_end=end;
+    p->events=ev;p->count=count;p->tempo=bpm?bpm:96;p->score_end=end;
     p->playing=(uint8_t)(ev!=0 && count!=0 && end!=0);
 }
 static void missa_player_note(missa_player *p,uint8_t note,uint8_t vel,uint8_t part,uint8_t on) {
