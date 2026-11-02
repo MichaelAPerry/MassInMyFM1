@@ -31,6 +31,7 @@ static int32_t live_note = -1;
 static uint32_t held_keys;
 static const char *const mode_name[4] = {"MISSA / MASS", "CALENDARIUM", "CANTUS", "ROSARIUM"};
 static const char *const mystery_name[4] = {"JOYFUL", "LUMINOUS", "SORROWFUL", "GLORIOUS"};
+static const char *const tone_name[3] = {"ORGAN", "CHOIR", "BELL"};
 static uint8_t mystery_set;
 static uint8_t is_leap(uint32_t y) { return (uint8_t)((y%4u == 0u && y%100u != 0u) || y%400u == 0u); }
 static uint8_t dim(uint32_t y,uint32_t m) {
@@ -179,8 +180,17 @@ void app_frame(void) {
         cv_text(12,110,&FONT_XS,score_selection==0?"SALVE REGINA":score_selection==1?"HOLY GOD WE PRAISE":"ENGINEERING DEMO",C_WHITE);
         cv_text(12,129,&FONT_XS,score_selection==0?"SIMPLE TONE / CC0":score_selection==1?"GROSSER GOTT / SATB":"NOT LITURGICAL",C_WHITE);
         cv_text(12,150,&FONT_XS,player.playing?(player.paused?"PAUSED":"PLAYING"):"STOPPED",C_WHITE);
+        {
+            uint16_t bpm=player.tempo?player.tempo:100;
+            char bpm_text[8]="BPM 000";
+            bpm_text[4]=(char)('0'+bpm/100u%10u);
+            bpm_text[5]=(char)('0'+bpm/10u%10u);
+            bpm_text[6]=(char)('0'+bpm%10u);
+            cv_text(146,150,&FONT_XS,bpm_text,C_WHITE);
+        }
         static const char *const part_labels[5]={"ALL PARTS","SOPRANO","ALTO","TENOR","BASS"};
         cv_text(12,170,&FONT_XS,score_selection==1?part_labels[player.part_mode]:(player.part_mode?"MELODY":"ALL PARTS"),C_WHITE);
+        cv_text(164,170,&FONT_XS,tone_name[settings.tone],C_WHITE);
         cv_text(12,188,&FONT_XS,"K1 SCORE / PRESET PART",C_WHITE);
         cv_text(12,132,&FONT_XS,"KEYS: LIVE SYNTH",C_WHITE);
     } else {
