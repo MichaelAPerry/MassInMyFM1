@@ -7,6 +7,7 @@
 #include "fastmath.h"
 #include "rosary_steps.h"
 #include "music_engine.h"
+#include "salve_regina_score.h"
 #define MISSA_MAGIC 0x4153534Du
 typedef struct {
     uint32_t magic;
@@ -18,6 +19,7 @@ static uint32_t previous_buttons;
 static uint8_t redraw;
 static float phase, level;
 static missa_player player;
+static uint8_t score_selection;
 /* Engineering test sequence: C-major arpeggio and simultaneous triad, NOT sacred repertoire. */
 static const missa_event test_score[] = {
     {0,60,100,1,0},{96,60,0,0,0},{96,64,100,1,0},{192,64,0,0,0},
@@ -103,7 +105,8 @@ static void input(void) {
         redraw=1;
     }
     if(plat_enc(EN_PRESET)) {player.part_mode^=1u;redraw=1;}
-    (void)plat_enc(EN_K1);(void)plat_enc(EN_K2);(void)plat_enc(EN_K3);(void)plat_enc(EN_K4);
+    if(plat_enc(EN_K1) && !player.playing) {score_selection^=1u;redraw=1;}
+    (void)plat_enc(EN_K2);(void)plat_enc(EN_K3);(void)plat_enc(EN_K4);
     if (settings.mode==1 && d) { int step=d>0?1:-1;while(d){date_step(step);d-=step;} }
     else if (settings.mode==3 && d) {
         int n=(int)settings.rosary_pos+d;
@@ -119,7 +122,10 @@ static void input(void) {
     if (pressed & (1u<<B_SAVE)) save();
     if (pressed & (1u<<B_FX)) {settings.tone=(settings.tone+1u)%3u;player.timbre=settings.tone;redraw=1;}
     if (pressed & (1u<<B_PLAY) && settings.mode==2) {
-        if(!player.playing)missa_player_start(&player,test_score,(uint16_t)(sizeof test_score/sizeof test_score[0]),player.tempo?player.tempo:100,480);
+        if(!player.playing) {
+            if(score_selection==0)missa_player_start(&player,missa_salve_regina,MISSA_SALVE_COUNT,player.tempo?player.tempo:100,MISSA_SALVE_END);
+            else missa_player_start(&player,test_score,(uint16_t)(sizeof test_score/sizeof test_score[0]),player.tempo?player.tempo:100,480);
+        }
         else player.paused=!player.paused;
         redraw=1;
     }
@@ -159,10 +165,11 @@ void app_frame(void) {
         cv_text(12,153,&FONT_XS,missa_rosary_prayer(settings.rosary_pos,1),C_WHITE);
         cv_text(12,181,&FONT_XS,"PLAY NEXT / SEQ PREV",C_WHITE);
     } else if(settings.mode==2) {
-        cv_text(12,110,&FONT_XS,"DEMO SCORE - NOT CHANT",C_WHITE);
+        cv_text(12,110,&FONT_XS,score_selection?"ENGINEERING DEMO":"SALVE REGINA - SIMPLE",C_WHITE);
+        cv_text(12,130,&FONT_XS,score_selection?"NOT LITURGICAL MUSIC":"GREGObase 18969 / CC0",C_WHITE);
         cv_text(12,150,&FONT_XS,player.playing?(player.paused?"PAUSED":"PLAYING"):"STOPPED",C_WHITE);
         cv_text(12,170,&FONT_XS,player.part_mode?"MELODY ONLY":"ALL PARTS",C_WHITE);
-        cv_text(12,188,&FONT_XS,"PRESET PARTS / FX SOUND",C_WHITE);
+        cv_text(12,188,&FONT_XS,"K1 SCORE / FX SOUND",C_WHITE);
         cv_text(12,132,&FONT_XS,"KEYS: LIVE SYNTH",C_WHITE);
     } else {
         cv_text(12,110,&FONT_XS,"CALENDAR: PROVISIONAL",C_WHITE);
