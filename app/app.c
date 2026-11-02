@@ -8,6 +8,7 @@
 #include "rosary_steps.h"
 #include "music_engine.h"
 #include "salve_regina_score.h"
+#include "holy_god_score.h"
 #define MISSA_MAGIC 0x4153534Du
 typedef struct {
     uint32_t magic;
@@ -60,6 +61,8 @@ void app_init(void) {
         settings.day>dim(settings.year,settings.month) || settings.mode>3 || settings.tone>2) {
         settings=(missa_settings_t){MISSA_MAGIC,2026,11,2,0,0,0};
     }
+    player.tempo=100u;
+    player.timbre=settings.tone;
 }
 void app_panic(void) {live_note=-1; level=0.0f;missa_player_clear(&player);}
 void app_render(int32_t *lr,uint32_t n,uint32_t master_q12) {
@@ -104,8 +107,15 @@ static void input(void) {
         player.tempo=(uint16_t)clamp(tempo,40,200);
         redraw=1;
     }
-    if(plat_enc(EN_PRESET)) {player.part_mode^=1u;redraw=1;}
-    if(plat_enc(EN_K1) && !player.playing) {score_selection^=1u;redraw=1;}
+    if(plat_enc(EN_PRESET) && !player.playing) {
+        player.part_mode=(uint8_t)((player.part_mode+1u)%(score_selection==1u?5u:2u));
+        redraw=1;
+    }
+    if(plat_enc(EN_K1) && !player.playing) {
+        score_selection=(uint8_t)((score_selection+1u)%3u);
+        player.part_mode=0u;
+        redraw=1;
+    }
     (void)plat_enc(EN_K2);(void)plat_enc(EN_K3);(void)plat_enc(EN_K4);
     if (settings.mode==1 && d) { int step=d>0?1:-1;while(d){date_step(step);d-=step;} }
     else if (settings.mode==3 && d) {
@@ -124,6 +134,7 @@ static void input(void) {
     if (pressed & (1u<<B_PLAY) && settings.mode==2) {
         if(!player.playing) {
             if(score_selection==0)missa_player_start(&player,missa_salve_regina,MISSA_SALVE_COUNT,player.tempo?player.tempo:100,MISSA_SALVE_END);
+            else if(score_selection==1)missa_player_start(&player,missa_holy_god,MISSA_HOLY_GOD_COUNT,player.tempo?player.tempo:100,MISSA_HOLY_GOD_END);
             else missa_player_start(&player,test_score,(uint16_t)(sizeof test_score/sizeof test_score[0]),player.tempo?player.tempo:100,480);
         }
         else player.paused=!player.paused;
@@ -165,11 +176,12 @@ void app_frame(void) {
         cv_text(12,153,&FONT_XS,missa_rosary_prayer(settings.rosary_pos,1),C_WHITE);
         cv_text(12,181,&FONT_XS,"PLAY NEXT / SEQ PREV",C_WHITE);
     } else if(settings.mode==2) {
-        cv_text(12,110,&FONT_XS,score_selection?"ENGINEERING DEMO":"SALVE REGINA - SIMPLE",C_WHITE);
-        cv_text(12,130,&FONT_XS,score_selection?"NOT LITURGICAL MUSIC":"GREGObase 18969 / CC0",C_WHITE);
+        cv_text(12,110,&FONT_XS,score_selection==0?"SALVE REGINA":score_selection==1?"HOLY GOD WE PRAISE":"ENGINEERING DEMO",C_WHITE);
+        cv_text(12,129,&FONT_XS,score_selection==0?"SIMPLE TONE / CC0":score_selection==1?"GROSSER GOTT / SATB":"NOT LITURGICAL",C_WHITE);
         cv_text(12,150,&FONT_XS,player.playing?(player.paused?"PAUSED":"PLAYING"):"STOPPED",C_WHITE);
-        cv_text(12,170,&FONT_XS,player.part_mode?"MELODY ONLY":"ALL PARTS",C_WHITE);
-        cv_text(12,188,&FONT_XS,"K1 SCORE / FX SOUND",C_WHITE);
+        static const char *const part_labels[5]={"ALL PARTS","SOPRANO","ALTO","TENOR","BASS"};
+        cv_text(12,170,&FONT_XS,score_selection==1?part_labels[player.part_mode]:(player.part_mode?"MELODY":"ALL PARTS"),C_WHITE);
+        cv_text(12,188,&FONT_XS,"K1 SCORE / PRESET PART",C_WHITE);
         cv_text(12,132,&FONT_XS,"KEYS: LIVE SYNTH",C_WHITE);
     } else {
         cv_text(12,110,&FONT_XS,"CALENDAR: PROVISIONAL",C_WHITE);
