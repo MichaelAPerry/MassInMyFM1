@@ -76,13 +76,13 @@ static void input(void) {
     if (settings.mode==1 && d) { int step=d>0?1:-1;while(d){date_step(step);d-=step;} }
     else if (settings.mode==3 && d) {
         int n=(int)settings.rosary_pos+d;
-        settings.rosary_pos=(uint8_t)clamp(n,0,81);
+        settings.rosary_pos=(uint8_t)clamp(n,0,79);
         redraw=1;
     } else if(d) {settings.mode=(uint8_t)clamp((int)settings.mode+d,0,3);redraw=1;}
     if (pressed & (1u<<B_HOME)) {settings.mode=0;redraw=1;}
     if (pressed & (1u<<B_SEL)) {settings.mode=(settings.mode+1u)%4u;redraw=1;}
     if (pressed & (1u<<B_EDIT)) {mystery_set=(mystery_set+1u)%4u;redraw=1;}
-    if (pressed & (1u<<B_PLAY) && settings.mode==3 && settings.rosary_pos<81) {settings.rosary_pos++;redraw=1;}
+    if (pressed & (1u<<B_PLAY) && settings.mode==3 && settings.rosary_pos<79) {settings.rosary_pos++;redraw=1;}
     if (pressed & (1u<<B_OCTDN)) date_step(-1);
     if (pressed & (1u<<B_OCTUP)) date_step(1);
     if (pressed & (1u<<B_SAVE)) save();
