@@ -9,6 +9,7 @@ wait 50
 tap SEL
 wait 80
 shot missa-cantus.png
+master 4096
 key 7 down
 wait 150
 wav missa-key.wav
