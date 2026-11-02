@@ -44,7 +44,7 @@ static void missa_player_step(missa_player *p) {
     if(!p->playing || p->paused)return;
     while(p->next<p->count && missa_tick_sample(p->events[p->next].tick,p->tempo)<=p->sample_clock) {
         const missa_event *e=&p->events[p->next++];
-        if(p->part_mode==0u || e->part==0u)
+        if(p->part_mode==0u || e->part+1u==p->part_mode)
             missa_player_note(p,e->note,e->velocity,e->part,e->on);
     }
     if(p->next==p->count && p->sample_clock>=missa_tick_sample(p->score_end,p->tempo)) {
