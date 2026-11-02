@@ -10,6 +10,15 @@ tap SEL
 wait 80
 shot missa-cantus.png
 master 4096
+tap PLAY
+wait 75
+wav salve-regina.wav
+wait 650
+wavstop
+expect peak_db_min -40
+tap REC
+wait 75
+master 4096
 key 7 down
 wait 150
 wav missa-key.wav
